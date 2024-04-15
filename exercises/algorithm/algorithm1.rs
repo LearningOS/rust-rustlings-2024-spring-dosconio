@@ -2,11 +2,11 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
+
+// 202404150006
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
-use std::vec::*;
 
 #[derive(Debug)]
 struct Node<T> {
@@ -14,7 +14,7 @@ struct Node<T> {
     next: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Node<T> {
+impl<T: Ord + Clone> Node<T> {
     fn new(t: T) -> Node<T> {
         Node {
             val: t,
@@ -22,6 +22,7 @@ impl<T> Node<T> {
         }
     }
 }
+
 #[derive(Debug)]
 struct LinkedList<T> {
     length: u32,
@@ -29,13 +30,13 @@ struct LinkedList<T> {
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T: Ord + Clone> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T: Ord + Clone> LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -69,15 +70,41 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+
+    pub fn merge(list_a: LinkedList<T>, list_b: LinkedList<T>) -> Self {
+        let mut merged_list = LinkedList::new();
+        let mut current_a = list_a.start;
+        let mut current_b = list_b.start;
+
+        while let (Some(node_a), Some(node_b)) = (current_a, current_b) {
+            let val_a = unsafe { node_a.as_ref().val.clone() };
+            let val_b = unsafe { node_b.as_ref().val.clone() };
+
+            if val_a <= val_b {
+                merged_list.add(val_a);
+                current_a = unsafe { node_a.as_ref().next };
+            } else {
+                merged_list.add(val_b);
+                current_b = unsafe { node_b.as_ref().next };
+            }
         }
-	}
+
+        // Append remaining nodes from list A
+        while let Some(node_a) = current_a {
+            let val_a = unsafe { node_a.as_ref().val.clone() };
+            merged_list.add(val_a);
+            current_a = unsafe { node_a.as_ref().next };
+        }
+
+        // Append remaining nodes from list B
+        while let Some(node_b) = current_b {
+            let val_b = unsafe { node_b.as_ref().val.clone() };
+            merged_list.add(val_b);
+            current_b = unsafe { node_b.as_ref().next };
+        }
+
+        merged_list
+    }
 }
 
 impl<T> Display for LinkedList<T>
